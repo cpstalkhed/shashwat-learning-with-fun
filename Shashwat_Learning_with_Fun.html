@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#6c5ce7">
+<title>Shashwat Learning with Fun</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans Devanagari","Nirmala UI",sans-serif;
+background:linear-gradient(135deg,#fff7d6,#dff7ff);color:#25234a}
+.app{max-width:920px;margin:auto;min-height:100vh;padding:12px}
+header{background:linear-gradient(135deg,#6c5ce7,#00b894);color:#fff;border-radius:28px;
+padding:20px 14px;text-align:center;box-shadow:0 8px 22px #0002}
+h1{margin:0;font-size:clamp(28px,7vw,48px)}
+header p{margin:6px 0 0;font-size:18px;font-weight:800}
+.card{background:#fffffff2;border-radius:25px;margin:14px 0;padding:18px;
+box-shadow:0 7px 22px #0001}
+h2{margin:0 0 7px;font-size:25px}
+.sub{margin:0 0 14px;color:#5c5c6b;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}
+.letter{border:0;border-radius:18px;padding:14px 4px;background:#fff0a8;font-size:32px;
+font-weight:900;box-shadow:0 4px 8px #0001;cursor:pointer}
+.letter.active{background:#b8f2d0;outline:4px solid #00b894}
+.letter:active,.choice:active,.word:active,.kana:active{transform:scale(.95)}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn{border:0;border-radius:18px;padding:12px 18px;background:#6c5ce7;color:#fff;
+font-weight:900;font-size:17px;cursor:pointer}
+.btn.voice{background:#00b894}.btn.next{background:#fdcb6e;color:#3d2c00}
+.voiceNote{font-size:14px;color:#666;text-align:center;margin-top:8px}
+.feedback{text-align:center;min-height:32px;font-size:20px;font-weight:900;margin:9px}
+.kanaGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kana{border:0;border-radius:20px;background:#e8e5ff;padding:12px 4px;font-size:31px;
+font-weight:900;cursor:pointer}
+.kana small{display:block;font-size:13px;color:#555;margin-top:3px}
+.matchBox{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.target{background:#fff3b0;border-radius:22px;padding:15px;text-align:center}
+.target .emoji{font-size:70px}.target .initial{font-size:38px;font-weight:900}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice{border:0;border-radius:20px;background:#eef1ff;padding:14px;font-size:26px;
+font-weight:900;cursor:pointer}
+.choice span{display:block;font-size:46px}.choice small{display:block;font-size:15px;color:#555}
+.words{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.word{border:0;background:#ffeaa7;border-radius:21px;padding:16px 8px;font-size:31px;
+font-weight:900;cursor:pointer}
+.word small{display:block;font-size:13px;color:#555}
+.score{text-align:center;font-size:19px;font-weight:900}
+footer{text-align:center;padding:14px;font-weight:800;color:#555}
+@media(max-width:600px){
+ .grid{grid-template-columns:repeat(4,1fr)}
+ .letter{font-size:27px;padding:12px 2px}
+ .kanaGrid{grid-template-columns:repeat(3,1fr)}
+ .words{grid-template-columns:repeat(2,1fr)}
+ .matchBox{grid-template-columns:1fr}
+ .choices{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>🌈 Shashwat Learning with Fun 🎈</h1>
+<p>खेळूया • शिकूया • बोलूया • वाचूया</p>
+</header>
+
+<section class="card">
+<h2>🔊 आवाज</h2>
+<p class="sub">अक्षर किंवा शब्दावर टिचकी द्या आणि ऐका.</p>
+<div class="row">
+<button class="btn voice" onclick="speak('नमस्कार शाश्वत! चला, मजेत शिकूया!')">🔊 आवाज तपासा</button>
+<button class="btn" onclick="stopVoice()">⏹️ थांबा</button>
+</div>
+<div class="voiceNote" id="voiceStatus">मराठी (mr-IN) आवाज उपलब्ध असल्यास तोच वापरला जाईल.</div>
+</section>
+
+<section class="card">
+<h2>① 🔤 अक्षर वाचन</h2>
+<p class="sub">अक्षर पाहा, टिचकी द्या आणि मोठ्याने वाचा.</p>
+<div class="grid" id="letters"></div>
+<div class="feedback" id="letterMsg"></div>
+</section>
+
+<section class="card">
+<h2>② 🪄 काना लावा</h2>
+<p class="sub">मूळ अक्षराला “ा” काना लावून योग्य अक्षर निवडा.</p>
+<div class="row" id="kanaGame"></div>
+<div class="feedback" id="kanaMsg"></div>
+<button class="btn next" onclick="newKana()">➡️ पुढचे अक्षर</button>
+</section>
+
+<section class="card">
+<h2>③ 🖼️ अक्षर–चित्र जोडी लावा</h2>
+<p class="sub">चित्र पाहा आणि त्याच्या नावाच्या सुरुवातीचे अक्षर निवडा.</p>
+<div class="matchBox">
+<div class="target">
+<div class="emoji" id="targetEmoji">🐘</div>
+<div class="initial" id="targetName">हत्ती</div>
+</div>
+<div class="choices" id="matchChoices"></div>
+</div>
+<div class="feedback" id="matchMsg"></div>
+<button class="btn next" onclick="newMatch()">➡️ पुढचे चित्र</button>
+</section>
+
+<section class="card">
+<h2>④ 📖 दोन अक्षरी काना शब्द</h2>
+<p class="sub">शब्दावर टिचकी द्या, आवाज ऐका आणि स्वतः मोठ्याने वाचा.</p>
+<div class="words" id="words"></div>
+<div class="feedback" id="wordMsg"></div>
+</section>
+
+<section class="card">
+<h2>🏆 माझी प्रगती</h2>
+<div class="score" id="score">⭐ गुण: 0</div>
+<div class="row"><button class="btn" onclick="resetScore()">🔄 पुन्हा सुरू</button></div>
+</section>
+
+<footer>💛 शाश्वतसाठी प्रेमाने — Shashwat Learning with Fun</footer>
+</div>
+
+<script>
+const letters=[
+"क","ख","ग","घ","च","छ","ज","झ","ट","ठ","ड","ढ","त","थ","द","ध","न",
+"प","फ","ब","भ","म","य","र","ल","व","श","ष","स","ह","ळ","क्ष","ज्ञ"
+];
+
+/* काना: प्रत्येक मूळ अक्षराचा अचूक 'ा' रूप */
+const kanaPairs=[
+["क","का"],["ख","खा"],["ग","गा"],["घ","घा"],["च","चा"],["छ","छा"],
+["ज","जा"],["झ","झा"],["ट","टा"],["ठ","ठा"],["ड","डा"],["ढ","ढा"],
+["त","ता"],["थ","था"],["द","दा"],["ध","धा"],["न","ना"],["प","पा"],
+["फ","फा"],["ब","बा"],["भ","भा"],["म","मा"],["य","या"],["र","रा"],
+["ल","ला"],["व","वा"],["श","शा"],["ष","षा"],["स","सा"],["ह","हा"],
+["ळ","ळा"],["क्ष","क्षा"],["ज्ञ","ज्ञा"]
+];
+
+/* चित्राचे नाव आणि सुरुवातीचे अक्षर एकमेकांशी जुळणारे ठेवले आहेत. */
+const picturePairs=[
+["क","🐢","कासव"],["ख","🪢","खोका"],["ग","🐄","गाय"],["घ","🏠","घर"],
+["च","🌙","चंद्र"],["छ","☂️","छत्री"],["ज","🪄","जादू"],["झ","🌳","झाड"],
+["ट","👒","टोपी"],["ठ","📍","ठिपका"],["ड","🥁","डमरू"],["ढ","🛡️","ढाल"],
+["त","🌟","तारा"],["थ","🛕","थाळी"],["द","🚪","दरवाजा"],["ध","🏳️","ध्वज"],
+["न","🚰","नळ"],["प","🪁","पतंग"],["फ","🌸","फूल"],["ब","🐐","बकरी"],
+["भ","🍲","भांडे"],["म","🐟","मासा"],["य","🪀","यो-यो"],["र","🛞","रथ"],
+["ल","🍋","लिंबू"],["व","🐯","वाघ"],["श","🐰","शशक"],["ष","🌿","षट्पर्णी"],
+["स","🍎","सफरचंद"],["ह","🐘","हत्ती"],["ळ","👶","बाळ"],["क्ष","🕯️","क्षमा"],
+["ज्ञ","📚","ज्ञान"]
+];
+
+/* प्रत्यक्ष दोन-अक्षरी/काना वाचनासाठी सोपे शब्द */
+const kanaWords=[
+"काका","मामा","दादा","नाना","बाबा","मामी","काकी","गाडी",
+"माळी","राजा","राणी","मासा","पाणी","तारा","बाळा","नाना"
+];
+
+let score=0, kanaTarget=null, matchTarget=null;
+const synth=window.speechSynthesis;
+
+function getMarathiVoice(){
+ if(!synth) return null;
+ const voices=synth.getVoices();
+ return voices.find(v=>/^mr-IN$/i.test(v.lang)) ||
+        voices.find(v=>/^mr/i.test(v.lang)) || null;
+}
+function speak(text){
+ if(!synth){return}
+ synth.cancel();
+ const u=new SpeechSynthesisUtterance(text);
+ const v=getMarathiVoice();
+ if(v){u.voice=v;u.lang=v.lang;document.getElementById("voiceStatus").textContent="🔊 मराठी आवाज सक्रिय: "+v.name}
+ else{u.lang="mr-IN";document.getElementById("voiceStatus").textContent="ℹ️ या ब्राउझरमध्ये स्वतंत्र मराठी आवाज उपलब्ध नाही; mr-IN निवडण्याचा प्रयत्न केला आहे."}
+ u.rate=.72;u.pitch=1.05;synth.speak(u);
+}
+function stopVoice(){if(synth)synth.cancel()}
+function addScore(n=1){
+ score+=n;document.getElementById("score").textContent="⭐ गुण: "+score;
+}
+
+/* ① अक्षर वाचन */
+document.getElementById("letters").innerHTML=letters.map((x,i)=>
+ `<button class="letter" aria-label="${x}" onclick="readLetter('${x}',this)">${x}</button>`
+).join("");
+function readLetter(x,el){
+ document.querySelectorAll(".letter").forEach(b=>b.classList.remove("active"));
+ el.classList.add("active");
+ speak(x);
+ document.getElementById("letterMsg").textContent="👏 छान! “"+x+"” अक्षर वाचा.";
+}
+
+/* ② काना लावा */
+function newKana(){
+ kanaTarget=kanaPairs[Math.floor(Math.random()*kanaPairs.length)];
+ const correct=kanaTarget[1];
+ let opts=[correct];
+ while(opts.length<4){
+   const p=kanaPairs[Math.floor(Math.random()*kanaPairs.length)][1];
+   if(!opts.includes(p))opts.push(p);
+ }
+ opts.sort(()=>Math.random()-.5);
+ document.getElementById("kanaGame").innerHTML=
+ opts.map(o=>`<button class="kana" onclick="checkKana('${o}')">${o}<small>🔊 ऐका</small></button>`).join("");
+ document.getElementById("kanaMsg").textContent="“"+kanaTarget[0]+"” ला काना लावा.";
+ speak(kanaTarget[0]);
+}
+function checkKana(answer){
+ const msg=document.getElementById("kanaMsg");
+ if(answer===kanaTarget[1]){
+   msg.textContent="🎉 बरोबर! "+kanaTarget[0]+" + ा = "+answer;
+   addScore(); speak(answer);
+ }else{
+   msg.textContent="🙂 पुन्हा प्रयत्न कर. काना “ा” आहे.";
+   speak(answer);
+ }
+}
+
+/* ③ अक्षर-चित्र जोडी */
+function newMatch(){
+ matchTarget=picturePairs[Math.floor(Math.random()*picturePairs.length)];
+ document.getElementById("targetEmoji").textContent=matchTarget[1];
+ document.getElementById("targetName").textContent=matchTarget[2];
+ let opts=[matchTarget[0]];
+ while(opts.length<4){
+   const x=picturePairs[Math.floor(Math.random()*picturePairs.length)][0];
+   if(!opts.includes(x))opts.push(x);
+ }
+ opts.sort(()=>Math.random()-.5);
+ document.getElementById("matchChoices").innerHTML=
+ opts.map(x=>`<button class="choice" onclick="checkMatch('${x}')">🔤 ${x}</button>`).join("");
+ document.getElementById("matchMsg").textContent="चित्राचे नाव वाचा आणि पहिले अक्षर निवडा.";
+ speak(matchTarget[2]);
+}
+function checkMatch(x){
+ const msg=document.getElementById("matchMsg");
+ if(x===matchTarget[0]){
+   msg.textContent="🌟 शाब्बास! "+matchTarget[2]+" = "+x;
+   addScore(); speak("शाब्बास! बरोबर जोडी!");
+ }else{
+   msg.textContent="🙂 पुन्हा प्रयत्न कर.";
+   speak(x);
+ }
+}
+
+/* ④ दोन अक्षरी काना शब्द */
+document.getElementById("words").innerHTML=kanaWords.map(w=>
+ `<button class="word" onclick="readWord('${w}',this)">${w}<small>🔊 वाचा</small></button>`
+).join("");
+function readWord(w,el){
+ document.querySelectorAll(".word").forEach(b=>b.style.outline="none");
+ el.style.outline="4px solid #00b894";
+ speak(w);
+ document.getElementById("wordMsg").textContent="👏 मोठ्याने वाचा: "+w;
+ addScore();
+}
+function resetScore(){
+ score=0;document.getElementById("score").textContent="⭐ गुण: 0";
+ speak("चला, पुन्हा सुरुवात करूया!");
+}
+
+/* काही Android ब्राउझरमध्ये आवाजांची यादी उशिरा मिळते */
+if(synth && "onvoiceschanged" in synth)synth.onvoiceschanged=()=>getMarathiVoice();
+
+newKana();
+newMatch();
+</script>
+</body>
+</html>

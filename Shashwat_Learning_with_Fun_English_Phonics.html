@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shashwat Learning with Fun</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#fff7c7,#dff7ff,#f1e4ff);color:#25234a}
+.app{max-width:980px;margin:auto;padding:12px}header{background:linear-gradient(135deg,#6c5ce7,#00b894);color:white;border-radius:28px;padding:22px;text-align:center}
+h1{margin:0;font-size:clamp(28px,7vw,50px)}header p{font-weight:800}.card{background:#fffffff2;border-radius:24px;margin:15px 0;padding:18px;box-shadow:0 7px 20px #0001}
+h2{margin:0 0 8px}.note{font-weight:700;color:#666}.sets{display:flex;gap:8px;overflow:auto;padding:5px 0 12px}
+.set{border:0;border-radius:15px;padding:10px 14px;font-weight:900;background:#eeeaff}.set.on{background:#6c5ce7;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}.tile,.choice,.word,.pl{border:0;border-radius:18px;padding:15px 5px;font-size:30px;font-weight:900;cursor:pointer}
+.tile{background:#fff0a8}.small{background:#dff8e9}.choice{background:#eef1ff}.choice span{display:block;font-size:52px}.word{background:#ffeaa7}.word small{display:block;font-size:12px;color:#666}
+.msg{text-align:center;min-height:30px;font-size:19px;font-weight:900;margin:9px}.btn{border:0;border-radius:17px;padding:12px 17px;color:#fff;background:#6c5ce7;font-weight:900;font-size:16px}.listen{background:#00b894}.next{background:#fdcb6e;color:#332500}
+.picgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pic{border:0;border-radius:20px;background:#eef1ff;padding:12px;font-weight:900;font-size:20px}.pic b{display:block;font-size:50px}
+.words{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.puzzle{margin-top:15px;background:#f7f7ff;border-radius:22px;padding:15px;text-align:center}.pemoji{font-size:70px}.scr{font-size:27px;letter-spacing:5px;font-weight:900}.ans{font-size:32px;min-height:40px;font-weight:900}.pls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.pl{background:#dff8e9}.controls{text-align:center;margin-top:10px}.creator{text-align:center;font-weight:900;padding:15px}
+@media(max-width:600px){.grid{grid-template-columns:repeat(3,1fr)}.picgrid,.words{grid-template-columns:repeat(2,1fr)}}
+</style></head><body><div class="app">
+<header><h1>🌈 Shashwat Learning with Fun 🎈</h1><p>Learn • Tap • Listen • Speak • Play</p></header>
+
+<section class="card"><h2>🔤 LETTERS — Capital & Small</h2><p class="note">Capital letter - Small letter जोडी लावा. ६-६ अक्षरे • ५ Sets</p>
+<div class="sets" id="cs"></div><div class="grid" id="cg"></div><div class="msg" id="cm"></div>
+<div class="controls"><button class="btn listen" onclick="speak(selected||'A')">🔊 Tap and Listen</button></div></section>
+
+<section class="card"><h2>🖼️ Small Letters — Picture Match</h2><p class="note">Small letter आणि picture ची जोडी लावा. ६-६ अक्षरे • ५ Sets</p>
+<div class="sets" id="ps"></div><div class="picgrid" id="pg"></div><div class="msg" id="pm"></div></section>
+
+<div id="phonics"></div>
+<div class="creator">Created by- <b>Pravin Jadhav Sir</b><br>📞 9527672044</div>
+</div>
+<script>
+const synth=speechSynthesis;let selected="",cset=0;
+function speak(t){synth.cancel();let u=new SpeechSynthesisUtterance(t),v=synth.getVoices().find(x=>/^en-US$/i.test(x.lang))||synth.getVoices().find(x=>/^en/i.test(x.lang));if(v)u.voice=v;u.lang=v?v.lang:"en-US";u.rate=.72;u.pitch=1.05;synth.speak(u)}
+const caps=[["A","B","C","D","E","F"],["G","H","I","J","K","L"],["M","N","O","P","Q","R"],["S","T","U","V","W","X"],["Y","Z","A","B","C","D"]];
+const pics=[[["a","🍎","apple"],["b","🐝","bee"],["c","🐱","cat"],["d","🐶","dog"],["e","🥚","egg"],["f","🐟","fish"]],[["g","🐐","goat"],["h","🎩","hat"],["i","🍦","ice"],["j","🧃","juice"],["k","🪁","kite"],["l","🦁","lion"]],[["m","🌙","moon"],["n","🪺","nest"],["o","🐙","octopus"],["p","🐷","pig"],["q","👑","queen"],["r","🐇","rabbit"]],[["s","☀️","sun"],["t","🐯","tiger"],["u","☂️","umbrella"],["v","🚐","van"],["w","⌚","watch"],["x","📦","box"]],[["y","🧶","yarn"],["z","🦓","zebra"],["a","🍎","apple"],["b","🐝","bee"],["c","🐱","cat"],["d","🐶","dog"]]];
+function sets(id,n,active,fn){document.getElementById(id).innerHTML=Array.from({length:n},(_,i)=>`<button class="set ${i==active?'on':''}" onclick="${fn}(${i})">Set ${i+1} · 6</button>`).join("")}
+function loadC(n){cset=n;sets("cs",5,n,"loadC");let a=caps[n],s=[...a].map(x=>x.toLowerCase()).sort(()=>Math.random()-.5);document.getElementById("cg").innerHTML=a.map(x=>`<button class="tile" onclick="selected='${x}';speak('${x}');document.getElementById('cm').textContent='Now tap: ${x.toLowerCase()}'">${x}</button>`).join("")+s.map(x=>`<button class="tile small" onclick="small('${x}')">${x}</button>`).join("");document.getElementById("cm").textContent="Tap a Capital letter, then its Small letter."}
+function small(x){if(!selected)return document.getElementById("cm").textContent="First tap a Capital letter.";let ok=x==selected.toLowerCase();document.getElementById("cm").textContent=ok?"🎉 Correct! "+selected+" = "+x:"🙂 Try again!";speak(ok?x:"Try again")}
+function loadP(n){sets("ps",5,n,"loadP");let a=pics[n];document.getElementById("pg").innerHTML=a.map(x=>`<button class="pic" onclick="speak('${x[2]}');document.getElementById('pm').textContent='🔊 ${x[2]} starts with ${x[0]}'"><b>${x[1]}</b>${x[0]}</button>`).join("");document.getElementById("pm").textContent="Tap a picture and listen to its name."}
+
+const data={a:[["cat","🐱"],["bat","🦇"],["hat","🎩"],["mat","🧶"],["cap","🧢"],["map","🗺️"]],e:[["bed","🛏️"],["red","🔴"],["hen","🐔"],["pen","🖊️"],["leg","🦵"],["net","🥅"]],i:[["pig","🐷"],["sit","🪑"],["pin","📌"],["fin","🐟"],["lip","👄"],["big","🐘"]],o:[["dog","🐶"],["log","🪵"],["pot","🍲"],["top","🔝"],["fox","🦊"],["box","📦"]],u:[["sun","☀️"],["bus","🚌"],["cup","☕"],["jug","🏺"],["run","🏃"],["tub","🛁"]]};
+function phonicsCard(v){
+let title=v.toUpperCase()+" Phonics";let words=data[v];let item=words[Math.floor(Math.random()*6)],sh=item[0].split("").sort(()=>Math.random()-.5);
+return `<section class="card"><h2>🔤 ${title} — CVC Words</h2><p class="note">Tap and listen. Then speak the word aloud. 🎤 Speak gives the child a speaking prompt.</p><div class="words">${words.map(x=>`<button class="word" onclick="speak('${x[0]}')">${x[1]} ${x[0]}<small>🔊 Tap and Listen</small></button>`).join("")}</div>
+<div class="puzzle"><div class="pemoji">${item[1]}</div><b>${title} word puzzle with pic</b><div class="scr">🔤 ${sh.join(" · ")}</div><div class="ans" id="ans${v}">_ _ _</div><div class="pls">${sh.map(c=>`<button class="pl" onclick="add('${v}','${c}',this)">${c}</button>`).join("")}</div>
+<div class="controls"><button class="btn listen" onclick="speak('${item[0]}')">🔊 Tap and Listen</button> <button class="btn" onclick="speak('Now speak the word')">🎤 Speak</button> <button class="btn next" onclick="location.reload()">➡️ New Puzzle</button></div><div class="msg" id="msg${v}">Build the word from the letters.</div></div></section>`}
+let current={};function add(v,c,b){current[v]=(current[v]||"")+c;b.disabled=true;b.style.opacity=.4;document.getElementById("ans"+v).textContent=current[v];if(current[v].length==3){let target=document.getElementById("phonics").dataset[v];let ok=current[v]==target;document.getElementById("msg"+v).textContent=ok?"🎉 Great! Correct!":"🙂 Try again!";speak(ok?target:current[v])}}
+loadC(0);loadP(0);let html="",targets={};for(let v of ["a","e","i","o","u"]){let item=data[v][Math.floor(Math.random()*6)],sh=item[0].split("").sort(()=>Math.random()-.5);targets[v]=item[0];html+=phonicsCard(v)}document.getElementById("phonics").innerHTML=html;for(let v in targets)document.getElementById("phonics").dataset[v]=targets[v];
+if(synth.onvoiceschanged)synth.onvoiceschanged=()=>{};
+</script></body></html>
